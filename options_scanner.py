@@ -4,7 +4,6 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime
 from typing import Literal
-from dotenv import load_dotenv
 
 def get_option_price(
     exchange: str,
@@ -293,3 +292,29 @@ def get_and_save_aggregate_options_chain(exchange: str, ticker: str, output_dir:
         
     except Exception as e:
         raise ValueError(f"Error combining options chain data: {str(e)}")
+
+def get_and_save_earliest_expiring_contracts(options_chain_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters the options chain DataFrame to return only the contracts with the earliest expiration date.
+
+    Args:
+        options_chain_df (pd.DataFrame): The DataFrame containing the options chain data,
+                                          as returned by `get_and_save_aggregate_options_chain`.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing only the options contracts with the earliest expiration date.
+                      If the input DataFrame is empty, returns an empty DataFrame.
+    """
+
+    if options_chain_df.empty:
+        return pd.DataFrame()
+
+    current_time = datetime.now()
+    current_date_str = current_time.strftime("%Y-%m-%d")
+    earliest_expiration = min(options_chain_df[options_chain_df['expiration'] >= current_date_str]['expiration'])
+    earliest_expiring_contracts = options_chain_df[options_chain_df['expiration'] == earliest_expiration]
+    
+    # Save to CSV
+    earliest_expiring_contracts.to_csv('earliest_expiring_contracts.csv', index=False)
+
+    return earliest_expiring_contracts
