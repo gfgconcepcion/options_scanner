@@ -318,3 +318,56 @@ def get_and_save_earliest_expiring_contracts(options_chain_df: pd.DataFrame) -> 
     earliest_expiring_contracts.to_csv('earliest_expiring_contracts.csv', index=False)
 
     return earliest_expiring_contracts
+
+def get_most_recent_equity_price(equity_exchange: str, equity_ticker: str) -> float:
+    """
+    Get the latest price of an equity.
+
+    Args:
+        equity_exchange (str): Exchange where the equity is traded.
+        equity_ticker (str): Exchange ticker symbol of the equity.
+
+    Returns:
+        float: The equity's latest price, rounded to 2 decimal places.
+
+    Raises:
+        ValueError: If the ticker is not found or if there's an error fetching data.
+
+    """
+    try:
+        stock = yf.Ticker(equity_ticker)
+        data = stock.history(period="1d")
+        if data.empty:
+            raise ValueError(f"No data found for {equity_ticker}")
+        return float(data['Close'][0].round(6))
+    except Exception as e:
+        raise ValueError(f"Error fetching equity price: {str(e)}")
+
+def get_equity_price_history(equity_exchange: str, equity_ticker: str, period='max') -> pd.DataFrame:
+    stock = yf.Ticker(equity_ticker)
+    price_history = stock.history(period=period)
+    return price_history
+
+def calculate_price_differences(price_df: pd.DataFrame) -> pd.DataFrame:
+    # The following values, unless otherwise written can be negative, positive
+    # or negative
+    price_df['open_price_dtd_abs_diff'] = price_df['Open'].diff().abs()
+    price_df['open_price_dtd_pct_diff'] = (price_df['Open'].diff() / price_df['Open'].shift()) * 100
+    price_df['close_price_dtd_abs_diff'] = price_df['Close'].diff()
+    price_df['close_price_dtd_pct_diff'] = (price_df['Close'].diff() / price_df['Close'].shift()) * 100
+    price_df['low_price_dtd_abs_diff'] = price_df['Low'].diff()
+    price_df['low_price_dtd_pct_diff'] = (price_df['Low'].diff() / price_df['Low'].shift()) * 100
+    price_df['high_price_dtd_abs_diff'] = price_df['High'].diff()
+    price_df['high_price_dtd_pct_diff'] = (price_df['High'].diff() / price_df['High'].shift()) * 100
+    price_df['open_to_close_abs_diff'] = price_df['Close'] - price_df['Open']
+    # The following value is always positive
+    price_df['high_to_low_abs_diff'] = price_df['High'] - price_df['Low']
+    return price_df
+
+def see_data_structure(equity_exchange: str, equity_ticker: str) -> None:
+    stock = yf.Ticker(equity_ticker)
+    # print(sorted(stock.info.keys()))
+    # print(stock.info['volume'])
+    # print(stock.history(period='5d'))  # returns object of type pd.DatFrame
+    print(stock.history(period='max').head(1))
+    print(stock.history(period='max').shape[0])
