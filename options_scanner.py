@@ -1,5 +1,6 @@
 import os
 import requests
+import numpy as np
 import pandas as pd
 import yfinance as yf
 from datetime import datetime
@@ -362,6 +363,19 @@ def calculate_price_differences(price_df: pd.DataFrame) -> pd.DataFrame:
     price_df['open_to_close_abs_diff'] = price_df['Close'] - price_df['Open']
     # The following value is always positive
     price_df['high_to_low_abs_diff'] = price_df['High'] - price_df['Low']
+    return price_df
+
+def calculate_price_volatility(price_df: pd.DataFrame, price_type: str, time_period: str) -> pd.DataFrame():
+    # TODO: Automate the calculation of more than 1 price volatily permutation
+    # TODO: Rethink valid_periods values
+    # TODO: Add logic to handle 'ytd' and 'max'
+    valid_periods = {'1d':1, '5d':5, '1mo':20, '3mo':65, '6mo':130, '1y':260, '2y':520, '5y':1300, '10y':2600, 'ytd':None, 'max':None}
+    if time_period not in valid_periods:
+        raise ValueError("Invalid time period. Choose from: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max")
+    
+    n_trading_days = valid_periods[time_period]
+    vol_type_name = price_type.replace('dtd_pct_diff', time_period + '_volatility')
+    price_df[vol_type_name] = price_df[price_type].rolling(window=n_trading_days).std()
     return price_df
 
 def see_data_structure(equity_exchange: str, equity_ticker: str) -> None:
