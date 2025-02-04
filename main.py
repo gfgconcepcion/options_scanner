@@ -8,7 +8,7 @@ def main():
     # most_recent_equity_price = osc.get_most_recent_equity_price(equity_exchange, equity_ticker))
     price_history = osc.get_equity_price_history(equity_exchange, equity_ticker)
     df = osc.calculate_price_differences(price_history)
-    df = osc.calculate_price_volatility(df, 'close_price_dtd_pct_diff', '1mo')
+    df = osc.calculate_price_volatility(df, 'high_to_low_abs_diff', '5d')
     # osc.see_data_structure(equity_exchange, equity_ticker)
 
 

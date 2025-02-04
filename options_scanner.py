@@ -374,7 +374,12 @@ def calculate_price_volatility(price_df: pd.DataFrame, price_type: str, time_per
         raise ValueError("Invalid time period. Choose from: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max")
     
     n_trading_days = valid_periods[time_period]
-    vol_type_name = price_type.replace('dtd_pct_diff', time_period + '_volatility')
+    if 'dtd_pct_diff' in price_type:
+        vol_type_name = price_type.replace('dtd_pct_diff', time_period + '_volatility')
+    elif 'dtd_abs_diff' in price_type:
+        vol_type_name = price_type.replace('dtd_abs_diff', time_period + '_volatility')
+    else:
+        vol_type_name = price_type.replace('abs_diff', time_period + '_volatility')
     price_df[vol_type_name] = price_df[price_type].rolling(window=n_trading_days).std()
     return price_df
 
